@@ -110,7 +110,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
   console.log(`🔗 API Base: http://localhost:${PORT}/api/items`);
   console.log(`🔐 Auth Base: http://localhost:${PORT}/api/auth`);
