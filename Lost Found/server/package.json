@@ -1,0 +1,21 @@
+{
+  "name": "campus-lost-and-found-server",
+  "version": "1.0.0",
+  "description": "Backend API for Campus Lost & Found College Web Application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seeder.js"
+  },
+  "keywords": ["lost-and-found", "mern", "college-project", "express", "mongodb"],
+  "author": "Campus Lost & Found Team",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5",
+    "morgan": "^1.10.0"
+  }
+}
