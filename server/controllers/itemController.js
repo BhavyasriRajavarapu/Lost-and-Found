@@ -161,6 +161,7 @@ exports.createItem = async (req, res) => {
       description,
       contact,
       status: status || 'Active',
+      user: req.user ? req.user._id : null,
     });
 
     res.status(201).json({

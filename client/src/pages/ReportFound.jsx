@@ -13,6 +13,7 @@ import {
   Info
 } from 'lucide-react';
 import { createItem } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const CATEGORIES = [
   'Electronics',
@@ -36,6 +37,7 @@ const CAMPUS_PRESET_LOCATIONS = [
 
 const ReportFound = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -43,8 +45,17 @@ const ReportFound = () => {
     location: '',
     date: new Date().toISOString().split('T')[0],
     description: '',
-    contact: '',
+    contact: user ? `${user.name} (${user.email}${user.phone ? ` / ${user.phone}` : ''})` : '',
   });
+
+  React.useEffect(() => {
+    if (user && !formData.contact) {
+      setFormData(prev => ({
+        ...prev,
+        contact: `${user.name} (${user.email}${user.phone ? ` / ${user.phone}` : ''})`
+      }));
+    }
+  }, [user]);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
