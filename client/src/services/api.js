@@ -2,13 +2,24 @@ import axios from 'axios';
 
 // Determine the API base URL:
 // 1. Explicit environment variable (e.g. VITE_API_URL)
-// 2. Production fallback to deployed Render backend
-// 3. Localhost development fallback to Vite proxy '/api'
+// 2. Localhost / Local IP development -> Vite proxy '/api'
+// 3. Production fallback -> Deployed Render backend
 const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || import.meta.env.PROD)) {
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.startsWith('192.168.'))
+  ) {
+    return '/api';
+  }
+  if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('vercel.app') || import.meta.env.PROD)
+  ) {
     return 'https://lost-and-found-1-abxg.onrender.com/api';
   }
   return '/api';
@@ -19,7 +30,7 @@ const API = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 20000,
+  timeout: 30000,
 });
 
 // Request Interceptor: Attach JWT token to requests if available
