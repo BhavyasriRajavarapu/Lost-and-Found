@@ -9,12 +9,14 @@ const {
   deleteItem,
 } = require('../controllers/itemController');
 
+const { optionalProtect } = require('../middleware/authMiddleware');
+
 // Stats route must be placed before /:id route
 router.get('/stats', getItemStats);
 
 router.route('/')
   .get(getItems)
-  .post(createItem);
+  .post(optionalProtect, createItem);
 
 router.route('/:id')
   .get(getItemById)

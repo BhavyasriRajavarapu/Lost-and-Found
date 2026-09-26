@@ -87,6 +87,8 @@ const sampleItems = [
   },
 ];
 
+const User = require('./models/User');
+
 const seedDB = async () => {
   try {
     const conn = await mongoose.connect(
@@ -94,12 +96,30 @@ const seedDB = async () => {
     );
     console.log(`Connected to MongoDB for seeding: ${conn.connection.host}`);
 
-    // Clear existing items
+    // Clear existing data
     await Item.deleteMany({});
-    console.log('Cleared existing items...');
+    await User.deleteMany({});
+    console.log('Cleared existing items and users...');
+
+    // Create demo user
+    const demoUser = await User.create({
+      name: 'Alex Chen',
+      email: 'alex.chen@campus.edu',
+      password: 'password123',
+      studentId: 'STU-2026-99',
+      phone: '+1 555-0199',
+      role: 'student',
+    });
+    console.log(`Created demo user: ${demoUser.email} (password: password123)`);
+
+    // Attach user to sample items
+    const itemsToInsert = sampleItems.map(item => ({
+      ...item,
+      user: demoUser._id,
+    }));
 
     // Insert sample items
-    await Item.insertMany(sampleItems);
+    await Item.insertMany(itemsToInsert);
     console.log(`✅ Successfully seeded ${sampleItems.length} campus items!`);
 
     process.exit(0);

@@ -1,5 +1,10 @@
 const Item = require('../models/Item');
 
+// Helper to escape regex special characters and prevent regex injection / syntax errors
+const escapeRegex = (text) => {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+};
+
 // @desc    Get all items with search & filter options
 // @route   GET /api/items
 // @access  Public
@@ -19,9 +24,9 @@ exports.getItems = async (req, res) => {
       query.category = category;
     }
 
-    // Filter by location
-    if (location && location !== 'All') {
-      query.location = { $regex: location, $options: 'i' };
+    // Filter by location (escaped regex)
+    if (location && location !== 'All' && location.trim() !== '') {
+      query.location = { $regex: escapeRegex(location.trim()), $options: 'i' };
     }
 
     // Filter by status (Active / Recovered)
@@ -29,20 +34,24 @@ exports.getItems = async (req, res) => {
       query.status = status;
     }
 
-    // Keyword Search (in title, description, location)
+    // Keyword Search (in title, description, location, category)
     if (search && search.trim() !== '') {
+      const escapedSearch = escapeRegex(search.trim());
       query.$or = [
-        { title: { $regex: search.trim(), $options: 'i' } },
-        { description: { $regex: search.trim(), $options: 'i' } },
-        { location: { $regex: search.trim(), $options: 'i' } },
-        { category: { $regex: search.trim(), $options: 'i' } },
+        { title: { $regex: escapedSearch, $options: 'i' } },
+        { description: { $regex: escapedSearch, $options: 'i' } },
+        { location: { $regex: escapedSearch, $options: 'i' } },
+        { category: { $regex: escapedSearch, $options: 'i' } },
       ];
     }
 
     let itemsQuery = Item.find(query).sort({ createdAt: -1 });
 
     if (limit) {
-      itemsQuery = itemsQuery.limit(parseInt(limit, 10));
+      const parsedLimit = parseInt(limit, 10);
+      if (!isNaN(parsedLimit) && parsedLimit > 0) {
+        itemsQuery = itemsQuery.limit(parsedLimit);
+      }
     }
 
     const items = await itemsQuery;
@@ -161,6 +170,7 @@ exports.createItem = async (req, res) => {
       description,
       contact,
       status: status || 'Active',
+      user: req.user ? req.user._id : null,
     });
 
     res.status(201).json({
@@ -211,6 +221,19 @@ exports.updateItem = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating item:', error);
+    if (error.name === 'CastError' || error.kind === 'ObjectId') {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found (Invalid ID format)',
+      });
+    }
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((val) => val.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', '),
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Server error while updating item',
@@ -242,6 +265,12 @@ exports.deleteItem = async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting item:', error);
+    if (error.name === 'CastError' || error.kind === 'ObjectId') {
+      return res.status(404).json({
+        success: false,
+        message: 'Item not found (Invalid ID format)',
+      });
+    }
     res.status(500).json({
       success: false,
       message: 'Server error while deleting item',

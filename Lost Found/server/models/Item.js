@@ -54,6 +54,11 @@ const ItemSchema = new mongoose.Schema(
       enum: ['Active', 'Recovered'],
       default: 'Active',
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
